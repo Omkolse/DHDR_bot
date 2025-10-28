@@ -1,0 +1,15 @@
+[console_scripts]
+cloud_bridge = spherical_bot.nodes.cloud_bridge:main
+core_controller = spherical_bot.nodes.core_controller:main
+sensor_manager = spherical_bot.nodes.sensor_manager:main
+spherical_bot_calibration = spherical_bot.scripts.calibration:main
+spherical_bot_diagnostics = spherical_bot.scripts.diagnostics:main
+spherical_bot_emergency = spherical_bot.scripts.emergency_stop:main
+system_guardian = spherical_bot.nodes.system_guardian:main
+test_balance = spherical_bot.test.test_balance:main
+test_motors = spherical_bot.test.test_motors:main
+test_sensors = spherical_bot.test.test_sensors:main
+
+[ros2cli.command]
+spherical_bot = spherical_bot.cli:SphericalBotCommand
+

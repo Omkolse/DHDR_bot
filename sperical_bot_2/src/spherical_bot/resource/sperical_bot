@@ -1,0 +1,32 @@
+# Spherical Bot Package Resource Marker
+# This file marks the spherical_bot package for ROS 2
+
+Package: spherical_bot
+Version: 1.0.0
+Description: Self-balancing spherical robot with real-time control and cloud navigation
+Build-Type: ament_python
+Dependencies: rclpy, std_msgs, sensor_msgs, geometry_msgs, nav_msgs, tf2_ros, tf2_geometry_msgs
+
+Maintainer: Spherical Bot Team <spherical-bot@example.com>
+License: Apache-2.0
+URL: https://github.com/your-username/spherical_bot
+
+# Package Structure:
+# - nodes/: ROS 2 nodes for core functionality
+# - lib/: Hardware abstraction libraries
+# - config/: Configuration files (YAML)
+# - launch/: Launch files
+# - scripts/: Utility scripts
+# - test/: Test files
+# - docs/: Documentation
+
+# Build Instructions:
+# 1. colcon build --packages-select spherical_bot
+# 2. source install/setup.bash
+# 3. ros2 launch spherical_bot spherical_bot.launch.py
+
+# Test Instructions:
+# 1. colcon test --packages-select spherical_bot
+# 2. ros2 run spherical_bot test_basic_nodes
+
+# This file is used by ROS 2 tools to identify the package.

@@ -1,0 +1,132 @@
+# Spherical Bot - Hardware Configuration
+# GPIO pin assignments and hardware settings
+
+hardware:
+  ros__parameters:
+    
+    # GPIO Mode (BCM or BOARD)
+    gpio_mode: "BCM"
+    
+    # Motor Driver (TB6612FNG)
+    motor_driver:
+      # Motor A (Left Motor)
+      motor_a:
+        in1_pin: 17    # GPIO17 - Physical pin 11
+        in2_pin: 27    # GPIO27 - Physical pin 13
+        pwm_pin: 13    # GPIO13 - Physical pin 33
+      
+      # Motor B (Right Motor)
+      motor_b:
+        in1_pin: 22    # GPIO22 - Physical pin 15
+        in2_pin: 23    # GPIO23 - Physical pin 16
+        pwm_pin: 18    # GPIO18 - Physical pin 12
+      
+      # PWM Settings
+      pwm_frequency: 1000    # Hz
+      pwm_range: 100         # 0-100% duty cycle
+    
+    # IMU (ICM-20948)
+    imu:
+      i2c_bus: 1
+      i2c_address: 0x68
+      sample_rate: 100       # Hz
+      accelerometer_range: 16  # ±16g
+      gyroscope_range: 2000    # ±2000 dps
+      magnetometer_range: 4900 # ±4900 μT
+      
+      # Filter settings
+      complementary_filter_alpha: 0.98
+      calibration_samples: 1000
+    
+    # TOF Camera (Arducam)
+    tof_camera:
+      enabled: true
+      device_index: 0        # /dev/video0
+      frame_width: 240
+      frame_height: 192
+      fps: 10
+      
+      # Camera parameters
+      focal_length: 240.0    # pixels
+      principal_point: [120, 96]  # [cx, cy]
+      
+      # Processing settings
+      downsample_factor: 2
+      min_depth: 0.1         # meters
+      max_depth: 10.0        # meters
+      compression_enabled: true
+    
+    # Encoders (N20 Motors with Encoders)
+    encoders:
+      # Left Encoder
+      left_encoder:
+        channel_a_pin: 5     # GPIO5 - Physical pin 29
+        channel_b_pin: 6     # GPIO6 - Physical pin 31
+        pulses_per_revolution: 1000
+      
+      # Right Encoder  
+      right_encoder:
+        channel_a_pin: 12    # GPIO12 - Physical pin 32
+        channel_b_pin: 16    # GPIO16 - Physical pin 36
+        pulses_per_revolution: 1000
+      
+      # Odometry parameters
+      wheel_diameter: 0.07   # meters (70mm)
+      wheel_base: 0.15       # meters (distance between wheels)
+      encoder_calibration: [1.0, 1.0]  # [left, right] calibration factors
+    
+    # Power Management
+    power_management:
+      # Battery monitoring (via ADC)
+      battery_voltage_pin: 26    # GPIO26 - Physical pin 37
+      battery_current_pin: 21    # GPIO21 - Physical pin 40
+      
+      # Battery specifications (3S LiPo)
+      cell_count: 3
+      nominal_voltage: 11.1      # volts
+      full_voltage: 12.6
+      empty_voltage: 9.0
+      capacity_mah: 2200
+      
+      # Voltage divider ratio (if used)
+      voltage_divider_ratio: 3.0
+    
+    # Thermal Management
+    thermal_management:
+      cooling_fan_pin: 19    # GPIO19 - Physical pin 35
+      fan_enable_temperature: 65.0  # °C
+      fan_disable_temperature: 55.0 # °C
+    
+    # Status LEDs
+    leds:
+      status_led_pin: 25     # GPIO25 - Physical pin 22
+      error_led_pin: 24      # GPIO24 - Physical pin 18
+    
+    # Emergency Stop
+    emergency_stop:
+      button_pin: 4          # GPIO4 - Physical pin 7
+      software_estop: true
+    
+    # I2C Devices
+    i2c_devices:
+      bus: 1
+      devices:
+        imu: 0x68
+        power_monitor: 0x40
+        # Add other I2C devices here
+    
+    # System Configuration
+    system:
+      # CPU affinity settings
+      core_assignments:
+        core_controller: 0    # Real-time core
+        sensor_manager: 1     # High priority core
+        cloud_bridge: 2       # Medium priority core
+        system_guardian: 3    # Low priority core
+      
+      # Process priorities (nice values)
+      process_priorities:
+        core_controller: -10   # Highest priority
+        sensor_manager: -5     # High priority
+        cloud_bridge: 0        # Normal priority
+        system_guardian: 5     # Low priority

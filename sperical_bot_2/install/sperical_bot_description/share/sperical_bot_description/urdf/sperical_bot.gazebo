@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<robot name="sperical_bot" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robot_param>robot_description</robot_param>
+    <robot_param_node>robot_state_publisher</robot_param_node>
+  </plugin>
+</gazebo>
+
+<gazebo reference="base_link">
+  <material>Gazebo/Silver</material>
+  <mu1>0.2</mu1>
+  <mu2>0.2</mu2>
+  <!--<self_collide>true</self_collide>
+  <gravity>true</gravity>-->
+</gazebo>
+
+<gazebo reference="left_wheel_1">
+  <material>Gazebo/Gray</material>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+</gazebo>
+
+<gazebo reference="right_wheel_1">
+  <material>Gazebo/Gray</material>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+</gazebo>
+
+<gazebo reference="caster_wheel_1">
+  <material>Gazebo/Gray</material>
+  <mu1>0.2</mu1>
+  <mu2>0.2</mu2>
+</gazebo>
+
+<gazebo reference="sensor_link_1">
+  <material>Gazebo/Red</material>
+  <mu1>0.2</mu1>
+  <mu2>0.2</mu2>
+</gazebo>
+
+</robot>

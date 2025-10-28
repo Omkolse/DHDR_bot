@@ -1,0 +1,32 @@
+Metadata-Version: 2.1
+Name: spherical-bot
+Version: 1.0.0
+Summary: Self-balancing spherical robot with real-time control and cloud navigation
+Home-page: UNKNOWN
+Author: Om Kolse
+Author-email: omkolse25@gmail.com
+Maintainer: Spherical Bot Team
+Maintainer-email: spherical-bot@example.com
+License: Apache-2.0
+Project-URL: Documentation, https://github.com/your-username/spherical_bot/docs
+Project-URL: Source, https://github.com/your-username/spherical_bot
+Project-URL: Tracker, https://github.com/your-username/spherical_bot/issues
+Keywords: ros2,robotics,self-balancing,autonomous,navigation
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Scientific/Engineering :: Robotics
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+
+Self-balancing spherical robot with real-time control and cloud navigation
+

@@ -1,0 +1,77 @@
+# Spherical Bot - Main Parameters
+# Core system configuration
+
+spherical_bot:
+  ros__parameters:
+    
+    # System Identification
+    robot_name: "spherical_bot_001"
+    robot_type: "self_balancing"
+    version: "1.0.0"
+    
+    # Control Rates (Hz)
+    control_rates:
+      core_controller: 100    # Real-time balance control
+      sensor_manager: 50      # Sensor data fusion
+      cloud_bridge: 10        # Cloud communication
+      system_guardian: 1      # Health monitoring
+    
+    # Balance Control
+    balance:
+      max_tilt_angle: 0.5           # radians (~30 degrees)
+      tilt_deadzone: 0.05           # radians
+      emergency_tilt_threshold: 0.7  # radians (~40 degrees)
+      startup_calibration_time: 3.0  # seconds
+    
+    # Motor Configuration
+    motors:
+      max_speed: 1.0           # -1.0 to 1.0
+      min_speed: -1.0
+      acceleration_limit: 2.0   # m/s²
+      deceleration_limit: 3.0   # m/s²
+    
+    # Sensor Configuration
+    sensors:
+      imu_sample_rate: 100     # Hz
+      tof_sample_rate: 10      # Hz
+      encoder_sample_rate: 50   # Hz
+      sensor_timeout: 1.0      # seconds
+    
+    # Navigation
+    navigation:
+      max_linear_speed: 0.5    # m/s
+      max_angular_speed: 1.0   # rad/s
+      obstacle_safety_margin: 0.3  # meters
+      goal_tolerance: 0.1      # meters
+    
+    # Cloud Communication
+    cloud:
+      enabled: true
+      telemetry_rate: 10       # Hz
+      pointcloud_rate: 5       # Hz
+      command_timeout: 2.0     # seconds
+      offline_buffer_size: 100 # messages
+    
+    # Safety Parameters
+    safety:
+      battery:
+        low_voltage_threshold: 11.1    # volts (3S LiPo)
+        critical_voltage_threshold: 10.5
+        shutdown_voltage_threshold: 9.5
+      
+      thermal:
+        warning_temperature: 70.0      # °C
+        critical_temperature: 80.0
+        emergency_temperature: 85.0
+      
+      connection:
+        max_connection_loss: 5.0       # seconds
+        auto_reconnect: true
+        reconnect_attempts: 5
+    
+    # Debug and Logging
+    debug:
+      enable_debug_output: false
+      log_level: "INFO"  # DEBUG, INFO, WARN, ERROR
+      data_logging: false
+      performance_monitoring: true

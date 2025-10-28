@@ -1,0 +1,24 @@
+/usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+  warnings.warn(
+running egg_info
+writing ../../build/sperical_bot_description/sperical_bot_description.egg-info/PKG-INFO
+writing dependency_links to ../../build/sperical_bot_description/sperical_bot_description.egg-info/dependency_links.txt
+writing entry points to ../../build/sperical_bot_description/sperical_bot_description.egg-info/entry_points.txt
+writing requirements to ../../build/sperical_bot_description/sperical_bot_description.egg-info/requires.txt
+writing top-level names to ../../build/sperical_bot_description/sperical_bot_description.egg-info/top_level.txt
+reading manifest file '../../build/sperical_bot_description/sperical_bot_description.egg-info/SOURCES.txt'
+writing manifest file '../../build/sperical_bot_description/sperical_bot_description.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+running install_data
+copying package.xml -> /home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/share/sperical_bot_description
+copying urdf/sperical_bot.trans -> /home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/share/sperical_bot_description/urdf
+copying urdf/sperical_bot.xacro -> /home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/share/sperical_bot_description/urdf
+copying urdf/sperical_bot.gazebo -> /home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/share/sperical_bot_description/urdf
+running install_egg_info
+removing '/home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/lib/python3.10/site-packages/sperical_bot_description-0.0.0-py3.10.egg-info' (and everything under it)
+Copying ../../build/sperical_bot_description/sperical_bot_description.egg-info to /home/omkolse/DHDR_bot/sperical_bot_2/install/sperical_bot_description/lib/python3.10/site-packages/sperical_bot_description-0.0.0-py3.10.egg-info
+running install_scripts
+writing list of installed files to '/home/omkolse/DHDR_bot/sperical_bot_2/build/sperical_bot_description/install.log'

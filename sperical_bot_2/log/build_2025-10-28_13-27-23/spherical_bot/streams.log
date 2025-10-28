@@ -1,0 +1,71 @@
+[0.822s] Invoking command in '/home/omkolse/DHDR_bot/sperical_bot_2/src/spherical_bot': PYTHONPATH=/home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/spherical_bot build --build-base /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build install --record /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/install.log --single-version-externally-managed install_data
+[1.032s] running egg_info
+[1.032s] creating ../../build/spherical_bot/spherical_bot.egg-info
+[1.032s] writing ../../build/spherical_bot/spherical_bot.egg-info/PKG-INFO
+[1.033s] writing dependency_links to ../../build/spherical_bot/spherical_bot.egg-info/dependency_links.txt
+[1.033s] writing entry points to ../../build/spherical_bot/spherical_bot.egg-info/entry_points.txt
+[1.033s] writing requirements to ../../build/spherical_bot/spherical_bot.egg-info/requires.txt
+[1.033s] writing top-level names to ../../build/spherical_bot/spherical_bot.egg-info/top_level.txt
+[1.033s] writing manifest file '../../build/spherical_bot/spherical_bot.egg-info/SOURCES.txt'
+[1.034s] reading manifest file '../../build/spherical_bot/spherical_bot.egg-info/SOURCES.txt'
+[1.035s] writing manifest file '../../build/spherical_bot/spherical_bot.egg-info/SOURCES.txt'
+[1.035s] running build
+[1.035s] running build_py
+[1.035s] creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build
+[1.035s] creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib
+[1.035s] creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot
+[1.035s] copying spherical_bot/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot
+[1.036s] creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] copying spherical_bot/nodes/sensor_manager.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] copying spherical_bot/nodes/core_controller.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] copying spherical_bot/nodes/cloud_bridge.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] copying spherical_bot/nodes/system_guardian.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] copying spherical_bot/nodes/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes
+[1.036s] creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.036s] copying spherical_bot/lib/odometry.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.036s] copying spherical_bot/lib/power_monitor.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/balance_controller.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/imu_manager.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/motor_driver.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/tof_camera.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] copying spherical_bot/lib/thermal_monitor.py -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib
+[1.037s] running install
+[1.037s] running install_lib
+[1.038s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot
+[1.038s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes/sensor_manager.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes/core_controller.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes/cloud_bridge.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes/system_guardian.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/nodes/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes
+[1.038s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/odometry.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/power_monitor.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.038s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/balance_controller.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/imu_manager.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/motor_driver.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/tof_camera.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/lib/thermal_monitor.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib
+[1.039s] copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/__init__.py -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot
+[1.039s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes/sensor_manager.py to sensor_manager.cpython-310.pyc
+[1.041s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes/core_controller.py to core_controller.cpython-310.pyc
+[1.042s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes/cloud_bridge.py to cloud_bridge.cpython-310.pyc
+[1.043s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes/system_guardian.py to system_guardian.cpython-310.pyc
+[1.044s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/nodes/__init__.py to __init__.cpython-310.pyc
+[1.044s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/odometry.py to odometry.cpython-310.pyc
+[1.044s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/power_monitor.py to power_monitor.cpython-310.pyc
+[1.045s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/balance_controller.py to balance_controller.cpython-310.pyc
+[1.045s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/imu_manager.py to imu_manager.cpython-310.pyc
+[1.046s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/motor_driver.py to motor_driver.cpython-310.pyc
+[1.046s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/tof_camera.py to tof_camera.cpython-310.pyc
+[1.047s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/__init__.py to __init__.cpython-310.pyc
+[1.047s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/lib/thermal_monitor.py to thermal_monitor.cpython-310.pyc
+[1.048s] byte-compiling /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/__init__.py to __init__.cpython-310.pyc
+[1.048s] running install_data
+[1.048s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/share/ament_index
+[1.049s] error: can't copy 'resource/spherical_bot': doesn't exist or not a regular file
+[1.049s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/share/ament_index/resource_index
+[1.049s] creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/share/ament_index/resource_index/packages
+[1.066s] Invoked command in '/home/omkolse/DHDR_bot/sperical_bot_2/src/spherical_bot' returned '1': PYTHONPATH=/home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/spherical_bot build --build-base /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build install --record /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/install.log --single-version-externally-managed install_data

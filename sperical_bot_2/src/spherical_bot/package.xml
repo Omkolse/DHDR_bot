@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypelayout="1.0"?>
+<package format="3">
+  <name>spherical_bot</name>
+  <version>0.1.0</version>
+  <description>Spherical Bot - Self-balancing robot with cloud navigation</description>
+  <maintainer email="omkolse25@gmail.com">Om Kolse</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- Build and test dependencies -->
+  <buildtool_depend>ament_python</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core ROS 2 dependencies -->
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+
+  <!-- Python dependencies -->
+  <exec_depend>python3-pip</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-psutil</exec_depend>
+  
+  <!-- Hardware dependencies (optional) -->
+  <exec_depend>python3-smbus</exec_depend>
+  <exec_depend>python3-rpi-gpio</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+
+  <!-- Cloud communication dependencies -->
+  <exec_depend>python3-paho-mqtt</exec_depend>
+  <exec_depend>python3-websockets</exec_depend>
+  <exec_depend>python3-requests</exec_depend>
+
+  <!-- Test dependencies -->
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>ament_xmllint</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>launch_testing</test_depend>
+
+  <!-- Export package information -->
+  <export>
+    <build_type>ament_python</build_type>
+    
+    <!-- Launch file exports -->
+    <launch>
+      <launch>launch/spherical_bot.launch.py</launch>
+      <launch>launch/emergency_mode.launch.py</launch>
+    </launch>
+    
+    <!-- ROS 2 middleware configuration -->
+    <ros2_middleware>
+      <rmw_implementation>rmw_cyclonedds_cpp</rmw_implementation>
+    </ros2_middleware>
+  </export>
+</package>

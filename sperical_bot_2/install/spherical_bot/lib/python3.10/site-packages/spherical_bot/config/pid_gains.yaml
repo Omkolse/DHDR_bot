@@ -1,0 +1,73 @@
+# Spherical Bot - PID Controller Gains
+# Tune these values for stable balancing
+
+balance_controller:
+  ros__parameters:
+    
+    # Main Balance PID (for upright stability)
+    balance_pid:
+      kp: 25.0    # Proportional gain - reacts to current error
+      ki: 0.5     # Integral gain - eliminates steady-state error
+      kd: 0.8     # Derivative gain - dampens oscillations
+      setpoint: 0.0  # Upright position (radians)
+      
+      # Output limits
+      output_limits:
+        min: -1.0
+        max: 1.0
+      
+      # Integral windup protection
+      integral_limits:
+        min: -2.0
+        max: 2.0
+      
+      # Feedforward gains for velocity
+      velocity_ff: 0.1
+      acceleration_ff: 0.05
+    
+    # Velocity PID (for speed control)
+    velocity_pid:
+      kp: 2.0
+      ki: 0.1
+      kd: 0.05
+      output_limits:
+        min: -0.5
+        max: 0.5
+    
+    # Tuning parameters
+    tuning:
+      # Filter coefficients
+      low_pass_alpha: 0.9     # For smoothing sensor data
+      derivative_filter: 0.8   # For smoothing derivative term
+      
+      # Adaptive control
+      adaptive_gains: false    # Enable gain scheduling
+      angle_threshold_for_adaptation: 0.3  # radians
+      
+      # Anti-windup
+      clamping_enabled: true
+      back_calculation_gain: 1.0
+    
+    # Motor mixing parameters
+    motor_mixing:
+      # How to combine balance and navigation commands
+      balance_weight: 1.0      # Weight for balance control
+      navigation_weight: 0.7   # Weight for navigation commands
+      max_combined_output: 1.2 # Allow slight overdrive for recovery
+      
+      # Differential drive mixing
+      linear_gain: 1.0
+      angular_gain: 0.8
+      
+      # Deadzone compensation
+      deadzone_compensation: 0.05
+    
+    # Startup and calibration
+    startup:
+      calibration_samples: 1000
+      settle_time: 2.0         # seconds
+      soft_start_duration: 1.0  # seconds
+      
+      # Safe startup sequence
+      enable_safe_start: true
+      max_startup_angle: 0.2   # radians

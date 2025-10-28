@@ -1,0 +1,21 @@
+running egg_info
+writing ../../build/spherical_bot/spherical_bot.egg-info/PKG-INFO
+writing dependency_links to ../../build/spherical_bot/spherical_bot.egg-info/dependency_links.txt
+deleting ../../build/spherical_bot/spherical_bot.egg-info/entry_points.txt
+deleting ../../build/spherical_bot/spherical_bot.egg-info/requires.txt
+writing top-level names to ../../build/spherical_bot/spherical_bot.egg-info/top_level.txt
+reading manifest file '../../build/spherical_bot/spherical_bot.egg-info/SOURCES.txt'
+writing manifest file '../../build/spherical_bot/spherical_bot.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config
+copying spherical_bot/config/hardware_config.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config
+copying spherical_bot/config/params.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config
+copying spherical_bot/config/pid_gains.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config
+running install
+running install_lib
+creating /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/config
+copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config/hardware_config.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/config
+copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config/pid_gains.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/config
+copying /home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot/build/lib/spherical_bot/config/params.yaml -> /home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot/lib/python3.10/site-packages/spherical_bot/config
+running install_data
