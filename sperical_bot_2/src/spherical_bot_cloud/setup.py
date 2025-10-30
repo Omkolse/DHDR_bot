@@ -48,25 +48,35 @@ setup(
         'console_scripts': [
             # Point Cloud Pipeline
             'data_receiver = spherical_bot_cloud.point_cloud_pipeline.data_receiver.mqtt_pointcloud_subscriber:main',
-            'decompression_engine = spherical_bot_cloud.point_cloud_pipeline.decompression_engine.run_length_decoder:main',
-            'noise_removal = spherical_bot_cloud.point_cloud_pipeline.noise_removal.statistical_outlier_removal:main',
-            'frame_stitching = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.icp_registrar:main',
-            'live_visualization = spherical_bot_cloud.point_cloud_pipeline.live_visualization.websocket_pointcloud_stream:main',
+            'websocket_handler = spherical_bot_cloud.point_cloud_pipeline.data_receiver.websocket_data_handler:main',
+            'compression_detector = spherical_bot_cloud.point_cloud_pipeline.data_receiver.compression_detector:main',
+            'data_validator = spherical_bot_cloud.point_cloud_pipeline.data_receiver.data_validator:main',
             
-            # Navigation Engine
-            'slam_processor = spherical_bot_cloud.navigation_engine.slam_processor.occupancy_grid_mapper:main',
-            'path_planner = spherical_bot_cloud.navigation_engine.path_planner.global_planner:main',
-            'obstacle_processor = spherical_bot_cloud.navigation_engine.obstacle_processor.dynamic_obstacle_tracker:main',
+            'rle_decoder = spherical_bot_cloud.point_cloud_pipeline.decompression_engine.run_length_decoder:main',
+            'delta_decoder = spherical_bot_cloud.point_cloud_pipeline.decompression_engine.delta_decoder:main',
+            'downsampling_reverser = spherical_bot_cloud.point_cloud_pipeline.decompression_engine.downsampling_reverser:main',
+            'format_converter = spherical_bot_cloud.point_cloud_pipeline.decompression_engine.format_converter:main',
             
-            # AI Processing
-            'object_detection = spherical_bot_cloud.ai_processing.object_detection.yolo_pointcloud_detector:main',
+            # Noise Removal
+            'statistical_outlier_removal = spherical_bot_cloud.point_cloud_pipeline.noise_removal.statistical_outlier_removal:main',
+            'radius_outlier_removal = spherical_bot_cloud.point_cloud_pipeline.noise_removal.radius_outlier_removal:main',
+            'depth_edge_filter = spherical_bot_cloud.point_cloud_pipeline.noise_removal.depth_edge_filter:main',
+            'temporal_consistency_filter = spherical_bot_cloud.point_cloud_pipeline.noise_removal.temporal_consistency_filter:main',
+            'adaptive_thresholding = spherical_bot_cloud.point_cloud_pipeline.noise_removal.adaptive_thresholding:main',
             
-            # Performance Optimization
-            'load_balancer = spherical_bot_cloud.performance_optimization.load_balancer.request_distributor:main',
-            'monitoring_analytics = spherical_bot_cloud.performance_optimization.monitoring_analytics.performance_tracker:main',
+            # Frame Stitching
+            'icp_registrar = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.icp_registrar:main',
+            'feature_based_aligner = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.feature_based_aligner:main',
+            'pose_graph_optimizer = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.pose_graph_optimizer:main',
+            'loop_closure_detector = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.loop_closure_detector:main',
+            'global_consistency_checker = spherical_bot_cloud.point_cloud_pipeline.frame_stitching.global_consistency_checker:main',
             
-            # Web Dashboard (Flask app)
-            'web_dashboard = spherical_bot_cloud.web_dashboard.app:main',
+            # Live Visualization
+            'websocket_pointcloud_stream = spherical_bot_cloud.point_cloud_pipeline.live_visualization.websocket_pointcloud_stream:main',
+            
+            # Storage Management
+            'realtime_buffer = spherical_bot_cloud.point_cloud_pipeline.storage_management.realtime_buffer:main',
+            'map_database_writer = spherical_bot_cloud.point_cloud_pipeline.storage_management.map_database_writer:main',
         ],
     },
 )

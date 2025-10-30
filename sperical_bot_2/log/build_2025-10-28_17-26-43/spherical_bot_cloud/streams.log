@@ -1,0 +1,4 @@
+[0.459s] Invoking command in '/home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot_cloud': /usr/bin/cmake /home/omkolse/DHDR_bot/sperical_bot_2/src/spherical_bot_cloud -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot_cloud
+[0.466s] [0mCMake Error: The source directory "/home/omkolse/DHDR_bot/sperical_bot_2/src/spherical_bot_cloud" does not appear to contain CMakeLists.txt.
+[0.466s] Specify --help for usage, or press the help button on the CMake GUI.[0m
+[0.468s] Invoked command in '/home/omkolse/DHDR_bot/sperical_bot_2/build/spherical_bot_cloud' returned '1': /usr/bin/cmake /home/omkolse/DHDR_bot/sperical_bot_2/src/spherical_bot_cloud -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/omkolse/DHDR_bot/sperical_bot_2/install/spherical_bot_cloud

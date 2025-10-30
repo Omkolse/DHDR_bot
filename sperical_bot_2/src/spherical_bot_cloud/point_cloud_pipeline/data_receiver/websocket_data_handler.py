@@ -1,359 +1,175 @@
-#!/usr/bin/env python3
-"""
-WebSocket Data Handler
-Handles real-time WebSocket connections for point cloud data
-"""
+# spherical_bot_cloud/point_cloud_pipeline/data_receiver/websocket_data_handler.py
 
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import websockets
 import asyncio
 import json
-import logging
-import websockets
-from typing import Dict, Set, Any, Optional
-from dataclasses import dataclass
-import time
-from enum import Enum
+import threading
+from std_msgs.msg import Header
+from spherical_bot_cloud_interfaces.msg import CompressedPointCloud, RobotTelemetry
 
-class ClientType(Enum):
-    ROBOT = "robot"
-    DASHBOARD = "dashboard"
-    PROCESSOR = "processor"
-
-@dataclass
-class WebSocketClient:
-    """WebSocket client information"""
-    websocket: websockets.WebSocketServerProtocol
-    client_id: str
-    client_type: ClientType
-    connected_at: float
-    last_activity: float
-
-class WebSocketDataHandler:
-    """WebSocket server for real-time point cloud data"""
-    
-    def __init__(self, host: str = "0.0.0.0", port: int = 8765):
-        self.host = host
-        self.port = port
-        self.clients: Dict[str, WebSocketClient] = {}
-        self.robot_clients: Set[str] = set()
-        self.dashboard_clients: Set[str] = set()
-        self.processor_clients: Set[str] = set()
+class WebSocketDataHandler(Node):
+    def __init__(self):
+        super().__init__('websocket_data_handler')
+        
+        # Parameters
+        self.declare_parameter('websocket_host', '0.0.0.0')
+        self.declare_parameter('websocket_port', 8081)
+        self.declare_parameter('robot_id', 'spherical_bot_001')
+        
+        self.host = self.get_parameter('websocket_host').value
+        self.port = self.get_parameter('websocket_port').value
+        self.robot_id = self.get_parameter('robot_id').value
+        
+        # Publishers
+        self.pointcloud_pub = self.create_publisher(CompressedPointCloud, 'pointcloud/compressed', 10)
+        self.telemetry_pub = self.create_publisher(RobotTelemetry, 'robot/telemetry', 10)
+        
+        # WebSocket server
+        self.clients = set()
         self.server = None
-        self.running = False
+        self.server_thread = None
         
-        # Statistics
-        self.stats = {
-            'connections_total': 0,
-            'messages_sent': 0,
-            'messages_received': 0,
-            'errors': 0
-        }
-        
-        # Configure logging
-        self.logger = logging.getLogger('websocket_handler')
+        self.get_logger().info(f'Starting WebSocket server on {self.host}:{self.port}')
+        self._start_websocket_server()
     
-    async def start_server(self):
-        """Start WebSocket server"""
-        try:
-            self.server = await websockets.serve(
-                self._handle_client,
+    def _start_websocket_server(self):
+        """Start WebSocket server in a separate thread"""
+        def run_server():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            start_server = websockets.serve(
+                self._websocket_handler,
                 self.host,
                 self.port
             )
-            self.running = True
-            self.logger.info(f"WebSocket server started on {self.host}:{self.port}")
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to start WebSocket server: {e}")
-            return False
+            
+            self.server = loop.run_until_complete(start_server)
+            self.get_logger().info(f'WebSocket server started on {self.host}:{self.port}')
+            loop.run_forever()
+        
+        self.server_thread = threading.Thread(target=run_server, daemon=True)
+        self.server_thread.start()
     
-    async def _handle_client(self, websocket: websockets.WebSocketServerProtocol, path: str):
-        """Handle new WebSocket client connection"""
-        client_id = f"client_{int(time.time())}_{id(websocket)}"
+    async def _websocket_handler(self, websocket, path):
+        """Handle WebSocket connections"""
+        self.clients.add(websocket)
+        client_addr = websocket.remote_address
+        self.get_logger().info(f'WebSocket client connected: {client_addr}')
         
         try:
-            # Wait for client identification
-            auth_message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
-            auth_data = json.loads(auth_message)
-            
-            client_type = ClientType(auth_data.get('client_type', 'dashboard'))
-            client_name = auth_data.get('client_name', 'unknown')
-            
-            # Register client
-            client = WebSocketClient(
-                websocket=websocket,
-                client_id=client_id,
-                client_type=client_type,
-                connected_at=time.time(),
-                last_activity=time.time()
-            )
-            
-            self.clients[client_id] = client
-            
-            # Add to appropriate client set
-            if client_type == ClientType.ROBOT:
-                self.robot_clients.add(client_id)
-                self.logger.info(f"🤖 Robot connected: {client_name} ({client_id})")
-            elif client_type == ClientType.DASHBOARD:
-                self.dashboard_clients.add(client_id)
-                self.logger.info(f"📊 Dashboard connected: {client_name} ({client_id})")
-            elif client_type == ClientType.PROCESSOR:
-                self.processor_clients.add(client_id)
-                self.logger.info(f"⚙️ Processor connected: {client_name} ({client_id})")
-            
-            self.stats['connections_total'] += 1
-            
-            # Send connection confirmation
-            await self._send_to_client(client_id, {
-                'type': 'connection_established',
-                'client_id': client_id,
-                'timestamp': time.time()
-            })
-            
-            # Handle client messages
             async for message in websocket:
-                client.last_activity = time.time()
-                await self._handle_client_message(client_id, message)
+                await self._process_websocket_message(websocket, message)
                 
         except websockets.exceptions.ConnectionClosed:
-            self.logger.info(f"Client {client_id} disconnected")
-        except asyncio.TimeoutError:
-            self.logger.warning(f"Client {client_id} authentication timeout")
-        except Exception as e:
-            self.logger.error(f"Error handling client {client_id}: {e}")
-            self.stats['errors'] += 1
+            self.get_logger().info(f'WebSocket client disconnected: {client_addr}')
         finally:
-            await self._remove_client(client_id)
+            self.clients.discard(websocket)
     
-    async def _handle_client_message(self, client_id: str, message: str):
-        """Handle incoming message from client"""
+    async def _process_websocket_message(self, websocket, message):
+        """Process incoming WebSocket messages"""
         try:
             data = json.loads(message)
-            message_type = data.get('type', 'unknown')
+            message_type = data.get('type', '')
             
-            self.stats['messages_received'] += 1
-            
-            client = self.clients.get(client_id)
-            if not client:
-                return
-            
-            if client.client_type == ClientType.ROBOT:
-                await self._handle_robot_message(client_id, data)
-            elif client.client_type == ClientType.DASHBOARD:
-                await self._handle_dashboard_message(client_id, data)
-            elif client.client_type == ClientType.PROCESSOR:
-                await self._handle_processor_message(client_id, data)
+            if message_type == 'pointcloud':
+                await self._handle_pointcloud_data(data)
+            elif message_type == 'telemetry':
+                await self._handle_telemetry_data(data)
+            elif message_type == 'command':
+                await self._handle_command_ack(data)
+            else:
+                self.get_logger().warning(f'Unknown message type: {message_type}')
                 
-        except json.JSONDecodeError:
-            self.logger.error(f"Invalid JSON from client {client_id}")
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f'WebSocket JSON decode error: {e}')
         except Exception as e:
-            self.logger.error(f"Error processing message from {client_id}: {e}")
+            self.get_logger().error(f'WebSocket message processing error: {e}')
     
-    async def _handle_robot_message(self, client_id: str, data: Dict):
-        """Handle message from robot client"""
-        message_type = data.get('type')
-        
-        if message_type == 'pointcloud_data':
-            # Forward point cloud data to processors and dashboards
-            await self._broadcast_to_processors(data)
-            await self._broadcast_to_dashboards({
-                'type': 'pointcloud_update',
-                'robot_id': client_id,
-                'timestamp': data.get('timestamp', time.time()),
-                'data_size': len(str(data.get('data', '')))
-            })
-            
-        elif message_type == 'telemetry':
-            # Forward telemetry to dashboards
-            await self._broadcast_to_dashboards({
-                'type': 'telemetry_update',
-                'robot_id': client_id,
-                **data
-            })
-    
-    async def _handle_dashboard_message(self, client_id: str, data: Dict):
-        """Handle message from dashboard client"""
-        message_type = data.get('type')
-        
-        if message_type == 'control_command':
-            # Forward control commands to robots
-            robot_id = data.get('robot_id')
-            if robot_id and robot_id in self.robot_clients:
-                await self._send_to_client(robot_id, data)
-    
-    async def _handle_processor_message(self, client_id: str, data: Dict):
-        """Handle message from processor client"""
-        message_type = data.get('type')
-        
-        if message_type == 'processed_pointcloud':
-            # Forward processed point clouds to dashboards
-            await self._broadcast_to_dashboards(data)
-    
-    async def _send_to_client(self, client_id: str, data: Dict):
-        """Send data to specific client"""
+    async def _handle_pointcloud_data(self, data):
+        """Handle compressed pointcloud data from WebSocket"""
         try:
-            client = self.clients.get(client_id)
-            if client and client.websocket.open:
-                await client.websocket.send(json.dumps(data))
-                self.stats['messages_sent'] += 1
-        except Exception as e:
-            self.logger.error(f"Error sending to client {client_id}: {e}")
-    
-    async def _broadcast_to_dashboards(self, data: Dict):
-        """Broadcast data to all dashboard clients"""
-        tasks = []
-        for client_id in self.dashboard_clients:
-            tasks.append(self._send_to_client(client_id, data))
-        
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-    
-    async def _broadcast_to_processors(self, data: Dict):
-        """Broadcast data to all processor clients"""
-        tasks = []
-        for client_id in self.processor_clients:
-            tasks.append(self._send_to_client(client_id, data))
-        
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-    
-    async def _broadcast_to_robots(self, data: Dict):
-        """Broadcast data to all robot clients"""
-        tasks = []
-        for client_id in self.robot_clients:
-            tasks.append(self._send_to_client(client_id, data))
-        
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-    
-    async def _remove_client(self, client_id: str):
-        """Remove client from tracking"""
-        client = self.clients.pop(client_id, None)
-        if client:
-            self.robot_clients.discard(client_id)
-            self.dashboard_clients.discard(client_id)
-            self.processor_clients.discard(client_id)
+            msg = CompressedPointCloud()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.frame_id = data.get('frame_id', 'tof_camera')
+            msg.robot_id = data.get('robot_id', self.robot_id)
+            msg.compression_type = data.get('compression_type', 'unknown')
+            msg.point_count = data.get('point_count', 0)
+            msg.original_size = data.get('original_size', 0)
+            msg.compressed_size = data.get('compressed_size', 0)
             
-            if client.client_type == ClientType.ROBOT:
-                self.logger.info(f"🤖 Robot disconnected: {client_id}")
-            elif client.client_type == ClientType.DASHBOARD:
-                self.logger.info(f"📊 Dashboard disconnected: {client_id}")
-            elif client.client_type == ClientType.PROCESSOR:
-                self.logger.info(f"⚙️ Processor disconnected: {client_id}")
+            # Convert base64 data to bytes
+            compressed_data = data['data'].encode('utf-8')
+            msg.data = list(compressed_data)
+            
+            self.pointcloud_pub.publish(msg)
+            
+        except Exception as e:
+            self.get_logger().error(f'Error handling pointcloud data: {e}')
     
-    async def send_pointcloud_to_dashboards(self, pointcloud_data: Dict):
-        """Send processed point cloud data to all dashboards"""
-        await self._broadcast_to_dashboards({
-            'type': 'pointcloud_processed',
-            'timestamp': time.time(),
-            'data': pointcloud_data
-        })
+    async def _handle_telemetry_data(self, data):
+        """Handle robot telemetry data"""
+        try:
+            msg = RobotTelemetry()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.robot_id = data.get('robot_id', self.robot_id)
+            
+            # IMU data
+            imu_data = data.get('imu', {})
+            msg.imu.orientation.x = imu_data.get('orientation_x', 0.0)
+            msg.imu.orientation.y = imu_data.get('orientation_y', 0.0)
+            msg.imu.orientation.z = imu_data.get('orientation_z', 0.0)
+            msg.imu.linear_acceleration.x = imu_data.get('accel_x', 0.0)
+            msg.imu.linear_acceleration.y = imu_data.get('accel_y', 0.0)
+            msg.imu.linear_acceleration.z = imu_data.get('accel_z', 0.0)
+            
+            # Odometry
+            odom_data = data.get('odometry', {})
+            msg.odometry.pose.pose.position.x = odom_data.get('x', 0.0)
+            msg.odometry.pose.pose.position.y = odom_data.get('y', 0.0)
+            msg.odometry.twist.twist.linear.x = odom_data.get('vx', 0.0)
+            msg.odometry.twist.twist.angular.z = odom_data.get('vtheta', 0.0)
+            
+            # Battery
+            msg.battery_voltage = data.get('battery_voltage', 0.0)
+            msg.battery_percentage = data.get('battery_percentage', 0.0)
+            
+            self.telemetry_pub.publish(msg)
+            
+        except Exception as e:
+            self.get_logger().error(f'Error handling telemetry data: {e}')
     
-    async def send_control_to_robot(self, robot_id: str, control_data: Dict):
-        """Send control command to specific robot"""
-        await self._send_to_client(robot_id, {
-            'type': 'control_command',
-            'timestamp': time.time(),
-            **control_data
-        })
+    async def _handle_command_ack(self, data):
+        """Handle command acknowledgments from robot"""
+        command_id = data.get('command_id', 'unknown')
+        status = data.get('status', 'unknown')
+        self.get_logger().info(f'Command {command_id} acknowledged with status: {status}')
     
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get WebSocket server statistics"""
-        return {
-            'running': self.running,
-            'clients_total': len(self.clients),
-            'robots_connected': len(self.robot_clients),
-            'dashboards_connected': len(self.dashboard_clients),
-            'processors_connected': len(self.processor_clients),
-            **self.stats
-        }
+    async def broadcast_to_clients(self, message):
+        """Broadcast message to all connected WebSocket clients"""
+        if self.clients:
+            await asyncio.wait([client.send(message) for client in self.clients])
     
-    async def stop_server(self):
-        """Stop WebSocket server"""
-        self.running = False
+    def destroy_node(self):
+        """Clean shutdown"""
         if self.server:
             self.server.close()
-            await self.server.wait_closed()
-            self.logger.info("WebSocket server stopped")
+        super().destroy_node()
 
-# WebSocket client for processors
-class WebSocketProcessorClient:
-    """WebSocket client for point cloud processors"""
-    
-    def __init__(self, server_uri: str, client_name: str = "processor"):
-        self.server_uri = server_uri
-        self.client_name = client_name
-        self.websocket = None
-        self.connected = False
-        
-        self.logger = logging.getLogger('websocket_processor')
-    
-    async def connect(self):
-        """Connect to WebSocket server"""
-        try:
-            self.websocket = await websockets.connect(self.server_uri)
-            
-            # Send authentication
-            auth_message = {
-                'client_type': 'processor',
-                'client_name': self.client_name,
-                'timestamp': time.time()
-            }
-            await self.websocket.send(json.dumps(auth_message))
-            
-            # Wait for confirmation
-            response = await self.websocket.recv()
-            response_data = json.loads(response)
-            
-            if response_data.get('type') == 'connection_established':
-                self.connected = True
-                self.logger.info(f"Processor client connected to {self.server_uri}")
-                return True
-            else:
-                self.logger.error("Failed to authenticate with WebSocket server")
-                return False
-                
-        except Exception as e:
-            self.logger.error(f"Failed to connect to WebSocket server: {e}")
-            return False
-    
-    async def send_processed_data(self, processed_data: Dict):
-        """Send processed point cloud data to server"""
-        if self.connected and self.websocket:
-            message = {
-                'type': 'processed_pointcloud',
-                'timestamp': time.time(),
-                'data': processed_data
-            }
-            await self.websocket.send(json.dumps(message))
-    
-    async def receive_messages(self):
-        """Receive messages from server"""
-        try:
-            async for message in self.websocket:
-                yield json.loads(message)
-        except websockets.exceptions.ConnectionClosed:
-            self.connected = False
-            self.logger.info("WebSocket connection closed")
-    
-    async def disconnect(self):
-        """Disconnect from WebSocket server"""
-        if self.websocket:
-            await self.websocket.close()
-            self.connected = False
-            self.logger.info("Processor client disconnected")
-
-async def main():
-    """Example usage"""
-    # Start WebSocket server
-    handler = WebSocketDataHandler()
-    await handler.start_server()
-    
+def main(args=None):
+    rclpy.init(args=args)
+    node = WebSocketDataHandler()
     try:
-        # Keep server running
-        while True:
-            await asyncio.sleep(1)
+        rclpy.spin(node)
     except KeyboardInterrupt:
-        await handler.stop_server()
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    main()

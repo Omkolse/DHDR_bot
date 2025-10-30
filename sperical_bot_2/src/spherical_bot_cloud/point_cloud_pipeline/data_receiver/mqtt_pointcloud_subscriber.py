@@ -1,298 +1,143 @@
+# spherical_bot_cloud/point_cloud_pipeline/data_receiver/mqtt_pointcloud_subscriber.py
+
 #!/usr/bin/env python3
-"""
-MQTT Point Cloud Subscriber
-Receives compressed point cloud data from Raspberry Pi via MQTT
-"""
 
-import asyncio
-import json
-import logging
+import rclpy
+from rclpy.node import Node
 import paho.mqtt.client as mqtt
-from typing import Dict, Any, Callable, Optional
-import time
-from dataclasses import dataclass
-import numpy as np
+import json
+import zlib
+import base64
+from threading import Lock
+from std_msgs.msg import Header
+from sensor_msgs.msg import PointCloud2, PointField
+from spherical_bot_cloud_interfaces.msg import CompressedPointCloud
 
-@dataclass
-class PointCloudMessage:
-    """Point cloud message container"""
-    robot_id: str
-    timestamp: float
-    data: bytes
-    compression_type: str
-    original_size: int
-    compressed_size: int
-    sequence_number: int
-
-class MQTTPointCloudSubscriber:
-    """MQTT subscriber for receiving point cloud data from robots"""
+class MQTTPointCloudSubscriber(Node):
+    def __init__(self):
+        super().__init__('mqtt_pointcloud_subscriber')
+        
+        # Parameters
+        self.declare_parameter('mqtt_broker', 'localhost')
+        self.declare_parameter('mqtt_port', 1883)
+        self.declare_parameter('mqtt_topic', 'robot/pointcloud/compressed')
+        self.declare_parameter('robot_id', 'spherical_bot_001')
+        
+        # Get parameters
+        self.mqtt_broker = self.get_parameter('mqtt_broker').value
+        self.mqtt_port = self.get_parameter('mqtt_port').value
+        self.mqtt_topic = self.get_parameter('mqtt_topic').value
+        self.robot_id = self.get_parameter('robot_id').value
+        
+        # ROS2 Publishers
+        self.compressed_pub = self.create_publisher(CompressedPointCloud, 'pointcloud/compressed', 10)
+        self.raw_pub = self.create_publisher(PointCloud2, 'pointcloud/raw', 10)
+        
+        # MQTT Client
+        self.mqtt_client = mqtt.Client(client_id=f"cloud_receiver_{self.robot_id}")
+        self.mqtt_client.on_connect = self._on_mqtt_connect
+        self.mqtt_client.on_message = self._on_mqtt_message
+        self.mqtt_client.on_disconnect = self._on_mqtt_disconnect
+        
+        # Connection management
+        self.is_connected = False
+        self.connection_lock = Lock()
+        
+        self.get_logger().info(f'Starting MQTT PointCloud Subscriber for robot {self.robot_id}')
+        self._connect_mqtt()
     
-    def __init__(self, host: str = "localhost", port: int = 1883):
-        self.host = host
-        self.port = port
-        self.client = None
-        self.connected = False
-        self.message_queue = asyncio.Queue(maxsize=1000)
-        self.robot_sessions: Dict[str, Dict] = {}
-        
-        # Statistics
-        self.stats = {
-            'messages_received': 0,
-            'bytes_received': 0,
-            'errors': 0,
-            'last_message_time': 0
-        }
-        
-        # Configure logging
-        self.logger = logging.getLogger('mqtt_subscriber')
-        
-    async def connect(self):
-        """Connect to MQTT broker"""
+    def _connect_mqtt(self):
+        """Connect to MQTT broker with retry logic"""
         try:
-            self.client = mqtt.Client(
-                client_id=f"pointcloud_subscriber_{int(time.time())}",
-                protocol=mqtt.MQTTv311
-            )
-            
-            # Set callbacks
-            self.client.on_connect = self._on_connect
-            self.client.on_message = self._on_message
-            self.client.on_disconnect = self._on_disconnect
-            
-            # Connect
-            self.client.connect(self.host, self.port, 60)
-            self.client.loop_start()
-            
-            self.logger.info(f"MQTT subscriber connecting to {self.host}:{self.port}")
-            return True
-            
+            self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
+            self.mqtt_client.loop_start()
+            self.get_logger().info(f'Connected to MQTT broker {self.mqtt_broker}:{self.mqtt_port}')
         except Exception as e:
-            self.logger.error(f"MQTT connection failed: {e}")
-            return False
+            self.get_logger().error(f'Failed to connect to MQTT: {e}')
+            # Retry after 5 seconds
+            self.create_timer(5.0, self._connect_mqtt)
     
-    def _on_connect(self, client, userdata, flags, rc):
+    def _on_mqtt_connect(self, client, userdata, flags, rc):
         """MQTT connection callback"""
-        if rc == 0:
-            self.connected = True
-            self.logger.info("✅ MQTT subscriber connected successfully")
-            
-            # Subscribe to point cloud topics
-            topics = [
-                "spherical_bot/+/pointcloud/compressed",
-                "spherical_bot/+/telemetry",
-                "spherical_bot/+/status"
-            ]
-            
-            for topic in topics:
-                client.subscribe(topic, qos=1)
-                self.logger.info(f"Subscribed to topic: {topic}")
-                
-        else:
-            self.connected = False
-            self.logger.error(f"MQTT connection failed with code: {rc}")
+        with self.connection_lock:
+            if rc == 0:
+                topic = f"{self.mqtt_topic}/{self.robot_id}"
+                client.subscribe(topic)
+                self.is_connected = True
+                self.get_logger().info(f'MQTT connected, subscribed to {topic}')
+            else:
+                self.get_logger().error(f'MQTT connection failed with code: {rc}')
+                self.is_connected = False
     
-    def _on_message(self, client, userdata, msg):
-        """MQTT message callback"""
-        try:
-            self.stats['messages_received'] += 1
-            self.stats['bytes_received'] += len(msg.payload)
-            self.stats['last_message_time'] = time.time()
-            
-            topic_parts = msg.topic.split('/')
-            robot_id = topic_parts[1] if len(topic_parts) > 1 else "unknown"
-            
-            if "pointcloud/compressed" in msg.topic:
-                asyncio.create_task(self._process_pointcloud_message(robot_id, msg.payload))
-            elif "telemetry" in msg.topic:
-                self._process_telemetry_message(robot_id, msg.payload)
-            elif "status" in msg.topic:
-                self._process_status_message(robot_id, msg.payload)
-                
-        except Exception as e:
-            self.stats['errors'] += 1
-            self.logger.error(f"Error processing MQTT message: {e}")
+    def _on_mqtt_disconnect(self, client, userdata, rc):
+        """MQTT disconnection callback"""
+        with self.connection_lock:
+            self.is_connected = False
+            if rc != 0:
+                self.get_logger().warning('MQTT unexpected disconnect, reconnecting...')
+                self._connect_mqtt()
     
-    async def _process_pointcloud_message(self, robot_id: str, payload: bytes):
-        """Process incoming point cloud message"""
+    def _on_mqtt_message(self, client, userdata, msg):
+        """Handle incoming MQTT messages"""
         try:
-            # Parse message header
-            message_data = json.loads(payload.decode('utf-8'))
+            # Parse JSON payload
+            payload = json.loads(msg.payload.decode('utf-8'))
             
             # Validate message structure
-            if not self._validate_pointcloud_message(message_data):
-                self.logger.warning(f"Invalid point cloud message from {robot_id}")
+            if not self._validate_message(payload):
+                self.get_logger().warning('Invalid message structure received')
                 return
             
-            # Create message object
-            pointcloud_msg = PointCloudMessage(
-                robot_id=robot_id,
-                timestamp=message_data.get('timestamp', time.time()),
-                data=message_data['data'],
-                compression_type=message_data.get('compression_type', 'unknown'),
-                original_size=message_data.get('original_size', 0),
-                compressed_size=message_data.get('compressed_size', len(payload)),
-                sequence_number=message_data.get('sequence_number', 0)
+            # Create CompressedPointCloud message
+            compressed_msg = CompressedPointCloud()
+            compressed_msg.header.stamp = self.get_clock().now().to_msg()
+            compressed_msg.header.frame_id = payload.get('frame_id', 'tof_camera')
+            compressed_msg.robot_id = self.robot_id
+            compressed_msg.compression_type = payload.get('compression_type', 'rle_delta')
+            compressed_msg.point_count = payload.get('point_count', 0)
+            compressed_msg.original_size = payload.get('original_size', 0)
+            compressed_msg.compressed_size = payload.get('compressed_size', 0)
+            
+            # Decode base64 compressed data
+            compressed_data = base64.b64decode(payload['data'])
+            compressed_msg.data = list(compressed_data)
+            
+            # Publish compressed message for further processing
+            self.compressed_pub.publish(compressed_msg)
+            
+            self.get_logger().debug(
+                f'Received compressed pointcloud: {compressed_msg.point_count} points, '
+                f'compression: {compressed_msg.compressed_size}/{compressed_msg.original_size} bytes'
             )
             
-            # Update robot session
-            self._update_robot_session(robot_id, pointcloud_msg)
-            
-            # Add to processing queue
-            await self.message_queue.put(pointcloud_msg)
-            
-            self.logger.debug(f"Queued point cloud from {robot_id}, "
-                            f"seq: {pointcloud_msg.sequence_number}, "
-                            f"compression: {pointcloud_msg.compression_ratio:.2f}")
-            
+        except json.JSONDecodeError as e:
+            self.get_logger().error(f'JSON decode error: {e}')
+        except KeyError as e:
+            self.get_logger().error(f'Missing key in message: {e}')
         except Exception as e:
-            self.stats['errors'] += 1
-            self.logger.error(f"Error processing point cloud from {robot_id}: {e}")
+            self.get_logger().error(f'Error processing MQTT message: {e}')
     
-    def _validate_pointcloud_message(self, message_data: Dict) -> bool:
-        """Validate point cloud message structure"""
-        required_fields = ['data', 'timestamp']
-        return all(field in message_data for field in required_fields)
+    def _validate_message(self, payload):
+        """Validate incoming message structure"""
+        required_fields = ['data', 'point_count', 'compression_type']
+        return all(field in payload for field in required_fields)
     
-    def _update_robot_session(self, robot_id: str, message: PointCloudMessage):
-        """Update robot connection session"""
-        if robot_id not in self.robot_sessions:
-            self.robot_sessions[robot_id] = {
-                'first_seen': time.time(),
-                'last_seen': time.time(),
-                'total_messages': 0,
-                'last_sequence': 0,
-                'compression_stats': {}
-            }
-        
-        session = self.robot_sessions[robot_id]
-        session['last_seen'] = time.time()
-        session['total_messages'] += 1
-        
-        # Check for sequence gaps
-        expected_sequence = session['last_sequence'] + 1
-        if message.sequence_number > expected_sequence and session['last_sequence'] > 0:
-            gap = message.sequence_number - expected_sequence
-            self.logger.warning(f"Sequence gap for {robot_id}: "
-                              f"expected {expected_sequence}, got {message.sequence_number} "
-                              f"(gap: {gap})")
-        
-        session['last_sequence'] = message.sequence_number
-        
-        # Update compression statistics
-        comp_type = message.compression_type
-        if comp_type not in session['compression_stats']:
-            session['compression_stats'][comp_type] = {
-                'count': 0,
-                'total_original_size': 0,
-                'total_compressed_size': 0
-            }
-        
-        stats = session['compression_stats'][comp_type]
-        stats['count'] += 1
-        stats['total_original_size'] += message.original_size
-        stats['total_compressed_size'] += message.compressed_size
-    
-    def _process_telemetry_message(self, robot_id: str, payload: bytes):
-        """Process telemetry messages"""
-        try:
-            telemetry_data = json.loads(payload.decode('utf-8'))
-            self.logger.debug(f"Telemetry from {robot_id}: {telemetry_data.get('timestamp')}")
-        except Exception as e:
-            self.logger.error(f"Error processing telemetry from {robot_id}: {e}")
-    
-    def _process_status_message(self, robot_id: str, payload: bytes):
-        """Process status messages"""
-        try:
-            status_data = json.loads(payload.decode('utf-8'))
-            self.logger.info(f"Status from {robot_id}: {status_data.get('status', 'unknown')}")
-        except Exception as e:
-            self.logger.error(f"Error processing status from {robot_id}: {e}")
-    
-    def _on_disconnect(self, client, userdata, rc):
-        """MQTT disconnection callback"""
-        self.connected = False
-        if rc != 0:
-            self.logger.warning("Unexpected MQTT disconnection")
-        else:
-            self.logger.info("MQTT subscriber disconnected")
-    
-    async def get_message(self) -> Optional[PointCloudMessage]:
-        """Get next point cloud message from queue"""
-        try:
-            return await asyncio.wait_for(self.message_queue.get(), timeout=1.0)
-        except asyncio.TimeoutError:
-            return None
-    
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get subscriber statistics"""
-        active_robots = {
-            robot_id: session for robot_id, session in self.robot_sessions.items()
-            if time.time() - session['last_seen'] < 60  # Active in last minute
-        }
-        
-        return {
-            'connected': self.connected,
-            'active_robots': len(active_robots),
-            'total_robots': len(self.robot_sessions),
-            'queue_size': self.message_queue.qsize(),
-            **self.stats
-        }
-    
-    async def disconnect(self):
-        """Disconnect from MQTT broker"""
-        if self.client:
-            self.client.loop_stop()
-            self.client.disconnect()
-            self.connected = False
-            self.logger.info("MQTT subscriber disconnected")
+    def destroy_node(self):
+        """Clean shutdown"""
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()
+        super().destroy_node()
 
-# Async manager for MQTT subscriber
-class MQTTSubscriberManager:
-    """Manager for MQTT subscriber with async support"""
-    
-    def __init__(self, host: str = "localhost", port: int = 1883):
-        self.subscriber = MQTTPointCloudSubscriber(host, port)
-        self.running = False
-        
-    async def start(self):
-        """Start the MQTT subscriber"""
-        if await self.subscriber.connect():
-            self.running = True
-            self.subscriber.logger.info("MQTT subscriber manager started")
-        else:
-            raise ConnectionError("Failed to connect to MQTT broker")
-    
-    async def stop(self):
-        """Stop the MQTT subscriber"""
-        self.running = False
-        await self.subscriber.disconnect()
-        self.subscriber.logger.info("MQTT subscriber manager stopped")
-    
-    async def message_generator(self):
-        """Async generator for point cloud messages"""
-        while self.running:
-            message = await self.subscriber.get_message()
-            if message:
-                yield message
-            else:
-                await asyncio.sleep(0.01)  # Small sleep to prevent busy waiting
-
-# Example usage
-async def main():
-    """Example usage of MQTT subscriber"""
-    subscriber_manager = MQTTSubscriberManager()
-    
+def main(args=None):
+    rclpy.init(args=args)
+    node = MQTTPointCloudSubscriber()
     try:
-        await subscriber_manager.start()
-        
-        async for message in subscriber_manager.message_generator():
-            print(f"Received point cloud from {message.robot_id}, "
-                  f"size: {message.compressed_size} bytes")
-                  
+        rclpy.spin(node)
     except KeyboardInterrupt:
-        print("Shutting down...")
+        pass
     finally:
-        await subscriber_manager.stop()
+        node.destroy_node()
+        rclpy.shutdown()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    main()
